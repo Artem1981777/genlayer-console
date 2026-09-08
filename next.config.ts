@@ -1,6 +1,8 @@
 import type { NextConfig } from "next"
 const isProd = process.env.NODE_ENV === "production"
-const repo = "genlayer-console"
+// GitHub Pages project sites live under /<repo>/. BASEPATH lets the same
+// source build for any repo slug (default: this repository).
+const repo = process.env.BASEPATH || "genlayer-console"
 const nextConfig: NextConfig = {
   output: "export",
   trailingSlash: true,
