@@ -25,6 +25,6 @@ jobs:
           node-version: "20"
       - name: Syntax-check client scripts
         run: |
-          for f in deploy.mjs interact.mjs test.mjs; do
+          for f in deploy.mjs common.mjs test.mjs test-payable.mjs verify.mjs; do
             node --check "$f"
           done

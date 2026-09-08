@@ -2,8 +2,8 @@
 
 Interactive multi-contract dApp on GenLayer Testnet Bradbury: a thin browser client that submits real inputs to three deployed Intelligent Contracts (content moderation, prediction market, multi-source price oracle) and reads their on-chain state. Every consensus-critical decision — moderation verdicts, market outcomes, oracle medians — is computed and stored on-chain by the contracts; the frontend never decides anything.
 
-**Live app:** <https://artem1981777.github.io/genlayer-consensus-console/>
-**Source:** <https://github.com/Artem1981777/genlayer-consensus-console>
+**Live app:** <https://artem1981777.github.io/genlayer-console/>
+**Source:** <https://github.com/Artem1981777/genlayer-console>
 
 **Status (v2.0.0):** 91/91 unit tests · `tsc --noEmit` clean · `next build` green · live smoke reads of all three deployed contracts. Steward-review evidence: [`docs/EVIDENCE.md`](docs/EVIDENCE.md) · [`docs/REVIEW-RESPONSE.md`](docs/REVIEW-RESPONSE.md).
 
@@ -279,8 +279,8 @@ The strict allowlist lives in `SUCCESS_RESULTS` / `classifyExecution`
 Requirements: Node ≥ 18, npm, a browser with an EIP-6963 wallet (MetaMask).
 
 ```bash
-git clone https://github.com/Artem1981777/genlayer-consensus-console.git
-cd genlayer-consensus-console
+git clone https://github.com/Artem1981777/genlayer-console.git
+cd genlayer-console
 npm ci
 npm run dev
 ```
@@ -447,7 +447,7 @@ evidence pack.
 ## Project structure
 
 ```
-genlayer-consensus-console/
+genlayer-console/
 ├── apps/
 │   ├── content-moderator/
 │   │   ├── contracts/moderator.py        # Content Moderator IC
@@ -513,8 +513,8 @@ See [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Links
 
-- This repository: <https://github.com/Artem1981777/genlayer-consensus-console>
-- Live app (GitHub Pages): <https://artem1981777.github.io/genlayer-consensus-console/>
+- This repository: <https://github.com/Artem1981777/genlayer-console>
+- Live app (GitHub Pages): <https://artem1981777.github.io/genlayer-console/>
 - GenLayer website: <https://www.genlayer.com/>
 - Docs: <https://docs.genlayer.com/>
 - Portal: <https://portal.genlayer.foundation/>
