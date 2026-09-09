@@ -444,6 +444,36 @@ Note: `gen_getContractSchema` on Bradbury currently returns
 attached; parity is proven by committed sources plus the on-chain executions in the
 evidence pack.
 
+## Steward review history — how every finding was addressed
+
+The project went through three steward-review rounds. Each finding, its fix and the
+committed proof:
+
+| Round | Finding | Fix (committed) | Proof |
+| --- | --- | --- | --- |
+| 1 (Aug 25) | "Add the oracle and prediction contract source that implements every advertised action, or remove the unsupported actions" | All three contract sources live in this repo (`apps/*/contracts/*.py`); every action the UI advertises maps to a `@gl.public` method — see the matrix below | [`docs/EVIDENCE.md`](docs/EVIDENCE.md) §2: action → source → deployed address → tx |
+| 1 (Aug 25) | "Await and verify an accepted transaction receipt before refreshing state" | `sendWriteEx` ([`src/lib/genlayer.ts`](src/lib/genlayer.ts)): submit → `waitForTransactionReceipt(ACCEPTED)` via the direct RPC read client → strict allowlist — success is **only** `FINISHED` / `FINISHED_WITH_RETURN` (`SUCCESS_RESULTS`); `FINISHED_WITH_ERROR`, `NOT_VOTED`, `UNDETERMINED`, `LEADER_TIMEOUT` are failures surfaced with the tx hash; pure transport timeouts are PENDING, never a false success | Unit tests in [`src/lib/genlayer.test.ts`](src/lib/genlayer.test.ts); on-chain: zero-value `stake` fails, valid stake passes |
+| 1 (Aug 25) | "Stake sends two arguments with zero transaction value" | `stake` submits exactly one argument (the side) with the amount as the payable transaction value; `parseStakeWei` blocks empty/zero/fractional amounts before the wallet opens | [`src/lib/actions.ts`](src/lib/actions.ts) `stake.build` / `stake.value`; unit-tested |
+| 2 (Sep 6) | "Prediction-market funds can remain locked if the creator stops progressing the lifecycle" | v2: no creator checks anywhere — `resolve`/`resolve_dispute`/`settle`/`void`/`finalize` are permissionless; `staking_deadline` bounds trading; after `final_deadline` anyone can always `finalize()` (settle-or-void, 1:1 refunds) | [`docs/REVIEW-RESPONSE.md`](docs/REVIEW-RESPONSE.md) Point 1; on-chain history of market `0x390C…8ba0` (all lifecycle steps executed by a non-creator account) |
+| 2 (Sep 6) | "Source authority remains creator-controlled" | v2: `add_source` removed; sources immutable from birth, ≥ 2 registrable domains, each with a verbatim binding excerpt re-verified deterministically on every node; failing sources are excluded from evidence | [`docs/REVIEW-RESPONSE.md`](docs/REVIEW-RESPONSE.md) Point 2; `sim_market.py` 54/54 (tamper/divergence rejection) |
+
+### Advertised action → contract method → source (parity matrix)
+
+Every UI action in [`src/lib/actions.ts`](src/lib/actions.ts) maps to a committed
+contract method — nothing advertised is unsupported:
+
+| UI action | Contract method | Source |
+| --- | --- | --- |
+| Moderate | `moderate()` | `apps/content-moderator/contracts/moderator.py` |
+| Enforce | `enforce()` | same |
+| Appeal | `appeal(note)` | same |
+| Resolve appeal | `resolve_appeal()` | same |
+| Stake | `stake(side)` payable | `apps/prediction-market/contracts/prediction_market.py` |
+| Resolve / Void / Finalize | `resolve()` / `void()` / `finalize()` | same |
+| Dispute / Resolve dispute | `dispute(reason)` / `resolve_dispute()` | same |
+| Settle / Claim / Refund | `settle()` / `claim()` / `refund()` | same |
+| Update feed | `update(key)` | `apps/multi-source-oracle/contracts/oracle.py` |
+
 ## Project structure
 
 ```
@@ -454,9 +484,11 @@ genlayer-console/
 │   │   ├── deploy.mjs / interact.mjs / test.mjs / resume.mjs
 │   │   └── docs/SECURITY-AUDIT.md
 │   ├── prediction-market/
-│   │   ├── contracts/prediction_market.py # Prediction Market IC
-│   │   ├── deploy.mjs / interact.mjs / lifecycle.mjs / test.mjs / test-payable.mjs
-│   │   └── docs/SECURITY-AUDIT.md
+│   │   ├── contracts/prediction_market.py # Prediction Market IC (v2)
+│   │   ├── deploy.mjs / test.mjs / test-payable.mjs / verify.mjs
+│   │   ├── sim_market.py                 # offline consensus simulation (54/54)
+│   │   ├── parity-proof.txt / test-results.txt
+│   │   └── rpc-relay.mjs/html + common.mjs  # QUIC relay (DPI workaround)
 │   └── multi-source-oracle/
 │       ├── contracts/oracle.py           # Multi-Source Oracle IC
 │       └── deploy.mjs / register.mjs / update.mjs
@@ -470,10 +502,12 @@ genlayer-console/
 │       ├── projects.ts                   # project config + deployed addresses
 │       ├── escrow.ts                     # bonus escrow demo (embedded contract source)
 │       ├── store.ts / types.ts / format.ts / wallet.ts
-│       └── *.test.ts                     # 76 unit tests
+│       └── *.test.ts                     # 91 unit tests
 ├── tests/
 │   ├── smoke.onchain.mjs                 # live get_state reads (all three contracts)
 │   └── probe-reads.mjs                   # diagnostic reads with retries
+├── scripts/
+│   └── deploy-gh-pages.mjs               # safe Pages deploy (temp-copy push)
 ├── docs/
 │   ├── EVIDENCE.md                       # action → source → deployment → tx matrix
 │   └── REVIEW-RESPONSE.md                # steward review response
